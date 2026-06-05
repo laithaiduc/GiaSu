@@ -1,10 +1,78 @@
 "use client";
 import { Users, AlertTriangle, FileText, CheckCircle, XCircle } from 'lucide-react';
 import './admin.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('posts');
+  const [pendingPosts, setPendingPosts] = useState<any[]>([]);
+  const [pendingTutorPosts, setPendingTutorPosts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('studentPosts');
+    if (saved) {
+      const allPosts = JSON.parse(saved);
+      setPendingPosts(allPosts.filter((p: any) => p.status === 'Chờ duyệt'));
+    }
+
+    const savedTutor = localStorage.getItem('tutorPosts');
+    if (savedTutor) {
+      const allTutorPosts = JSON.parse(savedTutor);
+      setPendingTutorPosts(allTutorPosts.filter((p: any) => p.status === 'Chờ duyệt'));
+    }
+  }, []);
+
+  const handleApprove = (id: number) => {
+    const saved = localStorage.getItem('studentPosts');
+    if (saved) {
+      const allPosts = JSON.parse(saved);
+      const updatedPosts = allPosts.map((p: any) => 
+        p.id === id ? { ...p, status: 'Đang tìm gia sư' } : p
+      );
+      localStorage.setItem('studentPosts', JSON.stringify(updatedPosts));
+      setPendingPosts(updatedPosts.filter((p: any) => p.status === 'Chờ duyệt'));
+      alert("Đã phê duyệt bài đăng của Học sinh!");
+    }
+  };
+
+  const handleReject = (id: number) => {
+    const saved = localStorage.getItem('studentPosts');
+    if (saved) {
+      const allPosts = JSON.parse(saved);
+      const updatedPosts = allPosts.map((p: any) => 
+        p.id === id ? { ...p, status: 'Bị từ chối' } : p
+      );
+      localStorage.setItem('studentPosts', JSON.stringify(updatedPosts));
+      setPendingPosts(updatedPosts.filter((p: any) => p.status === 'Chờ duyệt'));
+      alert("Đã từ chối bài đăng!");
+    }
+  };
+
+  const handleApproveTutor = (id: number) => {
+    const saved = localStorage.getItem('tutorPosts');
+    if (saved) {
+      const allPosts = JSON.parse(saved);
+      const updatedPosts = allPosts.map((p: any) => 
+        p.id === id ? { ...p, status: 'Đang hiển thị' } : p
+      );
+      localStorage.setItem('tutorPosts', JSON.stringify(updatedPosts));
+      setPendingTutorPosts(updatedPosts.filter((p: any) => p.status === 'Chờ duyệt'));
+      alert("Đã phê duyệt bài đăng của Gia sư!");
+    }
+  };
+
+  const handleRejectTutor = (id: number) => {
+    const saved = localStorage.getItem('tutorPosts');
+    if (saved) {
+      const allPosts = JSON.parse(saved);
+      const updatedPosts = allPosts.map((p: any) => 
+        p.id === id ? { ...p, status: 'Bị từ chối' } : p
+      );
+      localStorage.setItem('tutorPosts', JSON.stringify(updatedPosts));
+      setPendingTutorPosts(updatedPosts.filter((p: any) => p.status === 'Chờ duyệt'));
+      alert("Đã từ chối bài đăng của Gia sư!");
+    }
+  };
 
   return (
     <div className="container admin-layout">
@@ -26,28 +94,59 @@ export default function AdminDashboard() {
       <main className="admin-main card glass">
         {activeTab === 'posts' && (
           <div>
-            <h2 style={{color: '#D94625', marginBottom: '1.5rem'}}>Duyệt bài đăng (Hàng chờ: 2)</h2>
+            <h2 style={{color: '#D94625', marginBottom: '1.5rem'}}>Duyệt bài đăng của Học sinh (Hàng chờ: {pendingPosts.length})</h2>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '3rem'}}>
+              {pendingPosts.length === 0 ? (
+                <p className="text-muted" style={{textAlign: 'center', padding: '2rem'}}>Không có bài đăng nào cần duyệt.</p>
+              ) : pendingPosts.map((post) => (
+                <div key={post.id} style={{border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '1.5rem', background: 'white'}}>
+                  <div className="flex-between" style={{marginBottom: '1rem'}}>
+                    <span className="badge badge-student">Bài của Học sinh</span>
+                    <span className="text-muted">{post.time}</span>
+                  </div>
+                  <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>{post.title}</h3>
+                  <div style={{display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', color: 'var(--text-main)', fontSize: '0.9rem', flexWrap: 'wrap'}}>
+                    <span style={{background: 'rgba(0,0,0,0.05)', padding: '0.25rem 0.75rem', borderRadius: '1rem'}}>Môn: {post.subject}</span>
+                    <span style={{background: 'rgba(0,0,0,0.05)', padding: '0.25rem 0.75rem', borderRadius: '1rem'}}>Lương: {post.price}</span>
+                    <span style={{background: 'rgba(0,0,0,0.05)', padding: '0.25rem 0.75rem', borderRadius: '1rem'}}>Khu vực: {post.format}</span>
+                  </div>
+                  <div className="flex-center" style={{gap: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', justifyContent: 'flex-start'}}>
+                    <button className="btn btn-primary flex-center" onClick={() => handleApprove(post.id)} style={{gap: '0.5rem', background: '#10B981'}}><CheckCircle size={18} /> Phê duyệt (Công khai)</button>
+                    <button className="btn btn-outline flex-center" onClick={() => handleReject(post.id)} style={{gap: '0.5rem', color: '#DC2626', borderColor: '#DC2626'}}><XCircle size={18} /> Từ chối</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <h2 style={{color: '#D94625', marginBottom: '1.5rem'}}>Duyệt quảng cáo Gia sư (Hàng chờ: {pendingTutorPosts.length})</h2>
             <div style={{display: 'flex', flexDirection: 'column', gap: '1.5rem'}}>
-              {/* Post Item */}
-              <div style={{border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '1.5rem', background: 'white'}}>
-                <div className="flex-between" style={{marginBottom: '1rem'}}>
-                  <span className="badge badge-student">Bài của Học sinh</span>
-                  <span className="text-muted">Đăng 5 phút trước</span>
+              {pendingTutorPosts.length === 0 ? (
+                <p className="text-muted" style={{textAlign: 'center', padding: '2rem'}}>Không có bài quảng cáo Gia sư nào cần duyệt.</p>
+              ) : pendingTutorPosts.map((post) => (
+                <div key={post.id} style={{border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '1.5rem', background: 'white'}}>
+                  <div className="flex-between" style={{marginBottom: '1rem'}}>
+                    <span className="badge" style={{background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6'}}>Bài của Gia sư</span>
+                    <span className="text-muted">{post.time}</span>
+                  </div>
+                  <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>{post.title}</h3>
+                  <div style={{display: 'flex', gap: '1rem', marginBottom: '1rem'}}>
+                    {post.classType === 'group' ? (
+                      <span className="badge" style={{background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', fontSize: '0.8rem'}}>Lớp Nhóm ({post.maxStudents || 10} học viên)</span>
+                    ) : (
+                      <span className="badge" style={{background: 'rgba(139, 92, 246, 0.1)', color: '#8B5CF6', fontSize: '0.8rem'}}>Kèm 1-1</span>
+                    )}
+                  </div>
+                  <div style={{display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', color: 'var(--text-main)', fontSize: '0.9rem', flexWrap: 'wrap'}}>
+                    <span style={{background: 'rgba(0,0,0,0.05)', padding: '0.25rem 0.75rem', borderRadius: '1rem'}}>Môn: {post.subject}</span>
+                    <span style={{background: 'rgba(0,0,0,0.05)', padding: '0.25rem 0.75rem', borderRadius: '1rem'}}>Học phí: {post.price}</span>
+                    <span style={{background: 'rgba(0,0,0,0.05)', padding: '0.25rem 0.75rem', borderRadius: '1rem'}}>Khu vực: {post.format}</span>
+                  </div>
+                  <div className="flex-center" style={{gap: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', justifyContent: 'flex-start'}}>
+                    <button className="btn btn-primary flex-center" onClick={() => handleApproveTutor(post.id)} style={{gap: '0.5rem', background: '#10B981'}}><CheckCircle size={18} /> Phê duyệt (Công khai)</button>
+                    <button className="btn btn-outline flex-center" onClick={() => handleRejectTutor(post.id)} style={{gap: '0.5rem', color: '#DC2626', borderColor: '#DC2626'}}><XCircle size={18} /> Từ chối</button>
+                  </div>
                 </div>
-                <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Tìm gia sư luyện thi Toeic mục tiêu 750+</h3>
-                <p style={{color: 'var(--text-muted)', marginBottom: '1rem', lineHeight: 1.5}}>
-                  "Cần tìm giáo viên giỏi tiếng anh, mình học rất kém..."
-                </p>
-                <div style={{display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', color: 'var(--text-main)', fontSize: '0.9rem', flexWrap: 'wrap'}}>
-                  <span style={{background: 'rgba(0,0,0,0.05)', padding: '0.25rem 0.75rem', borderRadius: '1rem'}}>Môn: Tiếng Anh</span>
-                  <span style={{background: 'rgba(0,0,0,0.05)', padding: '0.25rem 0.75rem', borderRadius: '1rem'}}>Lương: 300k/buổi</span>
-                  <span style={{background: 'rgba(0,0,0,0.05)', padding: '0.25rem 0.75rem', borderRadius: '1rem'}}>Khu vực: Hà Nội</span>
-                </div>
-                <div className="flex-center" style={{gap: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', justifyContent: 'flex-start'}}>
-                  <button className="btn btn-primary flex-center" style={{gap: '0.5rem', background: '#10B981'}}><CheckCircle size={18} /> Phê duyệt (Công khai)</button>
-                  <button className="btn btn-outline flex-center" style={{gap: '0.5rem', color: '#DC2626', borderColor: '#DC2626'}}><XCircle size={18} /> Từ chối & Góp ý</button>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         )}

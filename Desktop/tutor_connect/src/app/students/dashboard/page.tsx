@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Target, MapPin, CheckCircle, Settings, LogOut, FileText, Heart, Star } from 'lucide-react';
 import Link from 'next/link';
 import '../../tutors/dashboard/tutor.css'; // Reuse dashboard layout css
@@ -8,6 +8,16 @@ import ComboBox from '@/components/common/ComboBox';
 
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState('profile');
+  const [userName, setUserName] = useState('Trần Học Sinh');
+  const [userEmail, setUserEmail] = useState('student@tutor.com');
+  
+  useEffect(() => {
+    const savedName = localStorage.getItem('userName');
+    const savedEmail = localStorage.getItem('userEmail');
+    if (savedName) setUserName(savedName);
+    if (savedEmail) setUserEmail(savedEmail);
+  }, []);
+
   const [savedTutors, setSavedTutors] = useState([
     { id: 1, name: "Nguyễn Văn A", role: "Sinh viên năm 3 - ĐH Bách Khoa TP.HCM", rating: 4.9, avatar: "N" }
   ]);
@@ -16,15 +26,23 @@ export default function StudentDashboard() {
     setSavedTutors(savedTutors.filter(tutor => tutor.id !== id));
   };
 
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    window.location.href = '/login';
+  };
+
   return (
     <div className="container dashboard-layout">
       {/* Sidebar */}
       <aside className="dashboard-sidebar card glass">
         <div className="profile-summary flex-center" style={{flexDirection: 'column', gap: '1rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)'}}>
-          <div className="tutor-avatar-large" style={{background: '#10B981'}}>H</div>
+          <div className="tutor-avatar-large" style={{background: '#10B981'}}>{userName.charAt(0).toUpperCase()}</div>
           <div style={{textAlign: 'center'}}>
-            <h3 style={{fontSize: '1.25rem', color: '#D94625'}}>Trần Học Sinh</h3>
-            <p className="text-muted">Học sinh Lớp 10</p>
+            <h3 style={{fontSize: '1.25rem', color: '#D94625'}}>{userName}</h3>
+            <p className="text-muted">Học sinh</p>
           </div>
         </div>
         
@@ -35,9 +53,9 @@ export default function StudentDashboard() {
           <button className={`nav-item ${activeTab === 'saved' ? 'active' : ''}`} onClick={() => setActiveTab('saved')} style={{width: '100%', background: activeTab === 'saved' ? 'rgba(249, 115, 22, 0.1)' : 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
             <Heart size={20}/> Gia sư đã lưu
           </button>
-          <a href="/students/posts" className="nav-item" style={{textDecoration: 'none'}}><FileText size={20}/> Quản lý Bài đăng</a>
+          <Link href="/students/posts" className="nav-item" style={{textDecoration: 'none'}}><FileText size={20}/> Quản lý Bài đăng</Link>
           <a href="#" className="nav-item" style={{textDecoration: 'none'}}><Settings size={20}/> Cài đặt tài khoản</a>
-          <a href="#" className="nav-item text-muted" style={{marginTop: 'auto', textDecoration: 'none'}}><LogOut size={20}/> Đăng xuất</a>
+          <a href="#" onClick={handleLogout} className="nav-item text-muted" style={{marginTop: 'auto', textDecoration: 'none'}}><LogOut size={20}/> Đăng xuất</a>
         </nav>
       </aside>
 
@@ -51,27 +69,27 @@ export default function StudentDashboard() {
               <div className="form-grid">
                 <div className="form-group">
                   <label>Họ và tên</label>
-                  <input type="text" className="input-field" defaultValue="Trần Học Sinh" />
+                  <input type="text" className="input-field" value={userName} onChange={(e) => setUserName(e.target.value)} />
                 </div>
                 <div className="form-group">
                   <label>Email</label>
-                  <input type="email" className="input-field" defaultValue="student@tutor.com" readOnly style={{backgroundColor: '#f3f4f6'}} />
+                  <input type="email" className="input-field" value={userEmail} readOnly style={{backgroundColor: '#f3f4f6'}} />
                 </div>
               </div>
 
               <h3 className="section-subtitle"><Target size={20} /> Tình trạng & Mục tiêu học tập</h3>
               <div className="form-group">
-                <ComboBox label="Lớp đang học" placeholder="Chọn lớp..." options={["Lớp 9", "Lớp 10", "Lớp 11"]} />
+                <ComboBox label="Lớp đang học" placeholder="Chọn lớp..." options={["Lớp 9", "Lớp 10", "Lớp 11", "Lớp 12", "Đại học"]} />
               </div>
               <div className="form-group">
                 <label>Mục tiêu & Sở thích (Giúp gia sư hiểu bạn hơn)</label>
-                <textarea className="input-field" rows={4} defaultValue="Mục tiêu năm nay là thi học sinh giỏi môn Tiếng Anh và duy trì điểm Toán trên 8.0. Thích cách học có nhiều hình ảnh minh họa." style={{resize: 'vertical'}}></textarea>
+                <textarea className="input-field" rows={4} placeholder="Ví dụ: Mục tiêu đạt 8.0 Toán cuối kỳ, thích học qua hình ảnh minh họa..." style={{resize: 'vertical'}}></textarea>
               </div>
 
               <h3 className="section-subtitle"><MapPin size={20} /> Khu vực & Thông tin liên hệ</h3>
               <div className="form-group">
                 <label>Nơi ở hiện tại</label>
-                <input type="text" className="input-field" defaultValue="Quận Bình Thạnh, TP.HCM" />
+                <input type="text" className="input-field" placeholder="Ví dụ: Quận Bình Thạnh, TP.HCM" />
               </div>
               
               <div className="flex-center" style={{marginTop: '2rem', justifyContent: 'flex-end'}}>

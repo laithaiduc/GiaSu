@@ -6,9 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 
 import ComboBox from '@/components/common/ComboBox';
-
-const SUBJECTS = ["Toán học", "Tiếng Anh", "Vật lý", "Hóa học", "Ngữ văn", "Sinh học", "Lịch sử", "Địa lý", "Tin học", "Tiếng Nhật", "Tiếng Hàn", "Tiếng Trung", "Luyện thi IELTS", "Luyện thi TOEIC", "Luyện thi Đại học"];
-const GRADES = ["Mầm non", "Lớp 1", "Lớp 2", "Lớp 3", "Lớp 4", "Lớp 5", "Lớp 6", "Lớp 7", "Lớp 8", "Lớp 9", "Lớp 10", "Lớp 11", "Lớp 12", "Đại học", "Người đi làm"];
+import { SUBJECTS, GRADES } from '@/lib/constants';
 
 const MOCK_TUTORS = [
   {
@@ -82,6 +80,10 @@ const MOCK_TUTORS = [
 export default function FindTutor() {
   const [minPrice, setMinPrice] = useState("50000");
   const [maxPrice, setMaxPrice] = useState("500000");
+  const [tutors, setTutors] = useState<any[]>(MOCK_TUTORS);
+
+  // In a real app, this would load Registered Tutor Profiles, not Tutor Posts.
+  // For now, we just show MOCK_TUTORS here.
 
   return (
     <div className="container find-tutor-container">
@@ -152,7 +154,7 @@ export default function FindTutor() {
         {/* Results */}
         <main className="results-container">
           <div className="results-header flex-between">
-            <p>Tìm thấy <strong>{MOCK_TUTORS.length}</strong> gia sư phù hợp</p>
+            <p>Tìm thấy <strong>{tutors.length}</strong> gia sư phù hợp</p>
             <select className="input-field" style={{width: 'auto', cursor: 'pointer'}}>
               <option>Mới nhất</option>
               <option>Đánh giá cao nhất</option>
@@ -161,7 +163,7 @@ export default function FindTutor() {
           </div>
 
           <div className="tutor-grid">
-            {MOCK_TUTORS.map((tutor) => (
+            {tutors.map((tutor) => (
               <div key={tutor.id} className="card tutor-card">
                 <div className="tutor-header flex-between">
                   <div className="tutor-info flex-center" style={{gap: '1rem'}}>
@@ -179,7 +181,7 @@ export default function FindTutor() {
                 </div>
                 
                 <div className="tutor-tags">
-                  {tutor.tags.map(tag => (
+                  {tutor.tags.map((tag: string) => (
                     <span key={tag} className="tag">{tag}</span>
                   ))}
                 </div>

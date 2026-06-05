@@ -11,17 +11,38 @@ export default function Login() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check simulated database first
+    const existingUsersStr = localStorage.getItem('registeredUsers');
+    const existingUsers = existingUsersStr ? JSON.parse(existingUsersStr) : [];
+    
+    const matchedUser = existingUsers.find((u: any) => u.email === email && u.password === password);
+    
+    if (matchedUser) {
+      localStorage.setItem('userRole', matchedUser.role);
+      localStorage.setItem('userEmail', matchedUser.email);
+      localStorage.setItem('userName', matchedUser.name);
+      if (matchedUser.role === 'student') window.location.href = '/students/dashboard';
+      else if (matchedUser.role === 'tutor') window.location.href = '/tutors/dashboard';
+      else window.location.href = '/admin';
+      return;
+    }
+
+    // Fallback to mock accounts
     if (email === 'admin@tutor.com' && password === 'admin123') {
       localStorage.setItem('userRole', 'admin');
+      localStorage.setItem('userName', 'Quản trị viên');
       window.location.href = '/admin';
     } else if (email === 'tutor@tutor.com') {
       localStorage.setItem('userRole', 'tutor');
+      localStorage.setItem('userName', 'Gia sư Trần B');
       window.location.href = '/tutors/dashboard';
     } else if (email === 'student@tutor.com') {
       localStorage.setItem('userRole', 'student');
-      window.location.href = '/students';
+      localStorage.setItem('userName', 'Học sinh Văn A');
+      window.location.href = '/students/dashboard';
     } else {
-      setError('Sai email hoặc mật khẩu! Dùng admin@tutor.com / admin123 cho quyền Admin.');
+      setError('Sai email hoặc mật khẩu! Dùng tài khoản mẫu hoặc đăng ký tài khoản mới.');
     }
   };
 

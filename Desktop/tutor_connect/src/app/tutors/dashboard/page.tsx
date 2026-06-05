@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Book, MapPin, Award, CheckCircle, Settings, LogOut, Briefcase, Heart, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import ComboBox from '@/components/common/ComboBox';
@@ -9,14 +9,28 @@ import './tutor.css';
 export default function TutorDashboard() {
   const [activeTab, setActiveTab] = useState('profile');
   const [isAccepting, setIsAccepting] = useState(true);
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   
-  const [savedStudents, setSavedStudents] = useState([
-    { id: 1, name: "Trần Học Sinh", needs: "Tiếng Anh (Giao tiếp)", price: "200.000đ/buổi", location: "Bình Thạnh, TP.HCM" },
-    { id: 2, name: "Phụ huynh bé Lan", needs: "Toán (Lớp 5)", price: "150.000đ/buổi", location: "Quận 1, TP.HCM" }
-  ]);
+  useEffect(() => {
+    const savedName = localStorage.getItem('userName');
+    const savedEmail = localStorage.getItem('userEmail');
+    if (savedName) setUserName(savedName);
+    if (savedEmail) setUserEmail(savedEmail);
+  }, []);
+  
+  const [savedStudents, setSavedStudents] = useState<any[]>([]);
 
   const handleUnsave = (id: number) => {
     setSavedStudents(savedStudents.filter(student => student.id !== id));
+  };
+
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    window.location.href = '/login';
   };
 
   return (
@@ -24,10 +38,10 @@ export default function TutorDashboard() {
       {/* Sidebar */}
       <aside className="dashboard-sidebar card glass">
         <div className="profile-summary flex-center" style={{flexDirection: 'column', gap: '1rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)'}}>
-          <div className="tutor-avatar-large">N</div>
+          <div className="tutor-avatar-large">{userName ? userName.charAt(0).toUpperCase() : 'G'}</div>
           <div style={{textAlign: 'center'}}>
-            <h3 style={{fontSize: '1.25rem', color: '#D94625'}}>Nguyễn Văn A</h3>
-            <p className="text-muted">Gia sư Sinh viên</p>
+            <h3 style={{fontSize: '1.25rem', color: '#D94625'}}>{userName || 'Gia sư'}</h3>
+            <p className="text-muted">Gia sư</p>
           </div>
         </div>
         
@@ -43,7 +57,7 @@ export default function TutorDashboard() {
           </button>
           <a href="/tutors/reviews" className="nav-item" style={{textDecoration: 'none'}}><Award size={20}/> Quản lý đánh giá</a>
           <a href="#" className="nav-item" style={{textDecoration: 'none'}}><Settings size={20}/> Cài đặt tài khoản</a>
-          <a href="#" className="nav-item text-muted" style={{marginTop: 'auto', textDecoration: 'none'}}><LogOut size={20}/> Đăng xuất</a>
+          <a href="#" onClick={handleLogout} className="nav-item text-muted" style={{marginTop: 'auto', textDecoration: 'none'}}><LogOut size={20}/> Đăng xuất</a>
         </nav>
       </aside>
 
@@ -69,42 +83,42 @@ export default function TutorDashboard() {
               <div className="form-grid">
                 <div className="form-group">
                   <label>Họ và tên</label>
-                  <input type="text" className="input-field" defaultValue="Nguyễn Văn A" />
+                  <input type="text" className="input-field" value={userName} onChange={(e) => setUserName(e.target.value)} />
                 </div>
                 <div className="form-group">
                   <label>Email</label>
-                  <input type="email" className="input-field" defaultValue="nguyenvana@example.com" readOnly style={{backgroundColor: '#f3f4f6'}} />
+                  <input type="email" className="input-field" value={userEmail} readOnly style={{backgroundColor: '#f3f4f6'}} />
                 </div>
               </div>
 
               <h3 className="section-subtitle"><Book size={20} /> Chuyên môn & Lớp dạy</h3>
               <div className="form-group">
                 <label>Các môn học có thể dạy</label>
-                <input type="text" className="input-field" defaultValue="Toán, Vật lý" placeholder="Phân cách bằng dấu phẩy..." />
+                <input type="text" className="input-field" placeholder="Ví dụ: Toán, Vật lý, Tiếng Anh..." />
               </div>
               <div className="form-group">
                 <label>Các lớp có thể dạy</label>
-                <input type="text" className="input-field" defaultValue="Lớp 10, Lớp 11, Lớp 12" placeholder="Phân cách bằng dấu phẩy..." />
+                <input type="text" className="input-field" placeholder="Ví dụ: Lớp 10, Lớp 11, Luyện thi IELTS..." />
               </div>
               
               <div className="form-grid">
                 <div className="form-group">
                   <label>Học phí mong muốn (VNĐ/giờ)</label>
-                  <input type="number" className="input-field" defaultValue={150000} />
+                  <input type="number" className="input-field" placeholder="Ví dụ: 150000" />
                 </div>
-                <ComboBox label="Giọng nói vùng miền" placeholder="Chọn miền..." options={["Miền Bắc", "Miền Trung", "Miền Nam"]} />
+                <ComboBox label="Giọng nói vùng miền" placeholder="Chọn miền..." options={["Miền Bắc", "Miền Trung", "Miền Nam", "Bất kỳ"]} />
               </div>
 
               <h3 className="section-subtitle"><MapPin size={20} /> Khu vực hoạt động</h3>
               <div className="form-group">
                 <label>Địa điểm có thể đến dạy</label>
-                <input type="text" className="input-field" defaultValue="Quận 1, Quận 3, Quận Bình Thạnh (TP.HCM)" />
+                <input type="text" className="input-field" placeholder="Ví dụ: Quận 1, Quận 3, Quận Bình Thạnh (TP.HCM)" />
               </div>
 
               <h3 className="section-subtitle"><Award size={20} /> Thành tích cá nhân</h3>
               <div className="form-group">
                 <label>Kinh nghiệm & Thành tích (Sẽ hiển thị cho Học sinh)</label>
-                <textarea className="input-field" rows={4} defaultValue="Sinh viên năm 3 Đại học Bách Khoa, có 2 năm kinh nghiệm gia sư môn Toán, Lý. Từng đạt giải 3 Học sinh giỏi cấp thành phố môn Toán. Phương pháp dạy trực quan, cam kết điểm 8+." style={{resize: 'vertical'}}></textarea>
+                <textarea className="input-field" rows={4} placeholder="Ví dụ: Sinh viên năm 3 Đại học Sư Phạm, đạt IELTS 8.0, có 2 năm kinh nghiệm dạy kèm..." style={{resize: 'vertical'}}></textarea>
               </div>
               
               <div className="flex-center" style={{marginTop: '1rem', justifyContent: 'flex-end'}}>
@@ -119,33 +133,7 @@ export default function TutorDashboard() {
             <h2 style={{color: '#D94625', marginBottom: '2rem'}}>Lớp đã ứng tuyển</h2>
             
             <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
-              {/* Applied Job 1 */}
-              <div style={{border: '1px solid var(--border)', padding: '1.25rem', borderRadius: 'var(--radius-md)'}}>
-                <div className="flex-between">
-                  <h3 style={{fontSize: '1.1rem'}}>Tìm gia sư Tiếng Anh giao tiếp</h3>
-                  <span className="badge" style={{background: 'rgba(245, 158, 11, 0.1)', color: '#D97706'}}>Chờ học sinh duyệt</span>
-                </div>
-                <div style={{marginTop: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem'}}>
-                  Học sinh: Trần Thị Học Sinh | Mức lương: 250.000đ/buổi
-                </div>
-                <div style={{marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
-                  Đã ứng tuyển: Hôm qua
-                </div>
-              </div>
-
-              {/* Applied Job 2 */}
-              <div style={{border: '1px solid var(--border)', padding: '1.25rem', borderRadius: 'var(--radius-md)'}}>
-                <div className="flex-between">
-                  <h3 style={{fontSize: '1.1rem'}}>Tìm gia sư Toán lớp 10 luyện thi</h3>
-                  <span className="badge" style={{background: 'rgba(16, 185, 129, 0.1)', color: '#047857'}}>Đã nhận lớp</span>
-                </div>
-                <div style={{marginTop: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem'}}>
-                  Học sinh: Phụ huynh bé Nam | Mức lương: 200.000đ/buổi
-                </div>
-                <div style={{marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
-                  Đã ứng tuyển: Tuần trước
-                </div>
-              </div>
+               <p className="text-muted" style={{textAlign: 'center', padding: '2rem'}}>Bạn chưa ứng tuyển vào lớp nào.</p>
             </div>
           </div>
         )}

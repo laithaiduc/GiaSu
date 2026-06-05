@@ -1,12 +1,11 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { Search, Filter, Star, MapPin, Clock, Users } from 'lucide-react';
 import '../../tutors/jobs/jobs.css';
 import Link from 'next/link';
 import ComboBox from '@/components/common/ComboBox';
-
-const SUBJECTS = ["Toán học", "Tiếng Anh", "Vật lý", "Hóa học", "Ngữ văn", "Sinh học", "Lịch sử", "Địa lý", "Tin học", "Tiếng Nhật", "Tiếng Hàn", "Tiếng Trung", "Luyện thi IELTS", "Luyện thi TOEIC", "Luyện thi Đại học"];
-const FORMATS = ["Online", "Offline (Tại nhà học sinh)", "Offline (Tại nhà gia sư)"];
+import { SUBJECTS, FORMATS } from '@/lib/constants';
 
 const MOCK_TUTOR_JOBS = [
   {
@@ -51,7 +50,7 @@ const MOCK_TUTOR_JOBS = [
     tutorInitials: "L",
     tutorId: 3,
     tutorRating: 4.8,
-    subject: "Năng khiếu (Guitar)",
+    subject: "Năng khiếu",
     price: "150.000đ/buổi",
     format: "Offline (Tại nhà gia sư)",
     schedule: "Cuối tuần (Sáng T7, CN)",
@@ -63,6 +62,36 @@ const MOCK_TUTOR_JOBS = [
 ];
 
 export default function StudentJobBoard() {
+  const [jobs, setJobs] = useState<any[]>(MOCK_TUTOR_JOBS);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('tutorPosts');
+    if (saved) {
+      const allPosts = JSON.parse(saved);
+      const approvedPosts = allPosts.filter((p: any) => p.status === 'Đang hiển thị').map((p: any) => ({
+        id: p.id + 1000, // avoid collision
+        title: p.title,
+        isNew: true,
+        tutorName: p.authorName || "Gia sư ẩn danh",
+        tutorInitials: (p.authorName || "G").charAt(0).toUpperCase(),
+        tutorId: 1, // mock
+        tutorRating: 5.0,
+        subject: p.subject,
+        price: p.price,
+        format: p.format,
+        schedule: "Thỏa thuận",
+        description: p.desc || "Chi tiết khóa học đang được cập nhật...",
+        interested: p.applicants || 0,
+        classType: p.classType || '1-on-1',
+        maxStudents: p.maxStudents || 1,
+        registeredStudents: p.registeredStudents || 0,
+        postedAt: "Mới đây",
+        color: "var(--primary)"
+      }));
+      setJobs([...approvedPosts, ...MOCK_TUTOR_JOBS]);
+    }
+  }, []);
+
   return (
     <div className="container jobs-container">
       <div className="page-header" style={{textAlign: 'center', marginBottom: '3rem', paddingTop: '2rem'}}>
@@ -83,7 +112,7 @@ export default function StudentJobBoard() {
 
         <main className="results-container">
           <div className="flex-between" style={{marginBottom: '1.5rem'}}>
-            <p>Có <strong>{MOCK_TUTOR_JOBS.length}</strong> lớp học đang mở</p>
+            <p>Có <strong>{jobs.length}</strong> lớp học đang mở</p>
             <div className="input-with-icon" style={{width: '250px', position: 'relative'}}>
               <Search size={16} className="text-muted" style={{position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)'}} />
               <input type="text" className="input-field" placeholder="Tìm kiếm lớp..." style={{paddingLeft: '2.5rem'}} />
@@ -91,12 +120,17 @@ export default function StudentJobBoard() {
           </div>
 
           <div className="jobs-list">
-            {MOCK_TUTOR_JOBS.map(job => (
+            {jobs.map(job => (
               <div key={job.id} className="card glass job-card">
                 <div className="flex-between" style={{marginBottom: '1rem'}}>
-                  {job.isNew ? (
-                    <span className="tag" style={{background: 'rgba(249,115,22,0.1)', color: 'var(--primary)', fontWeight: 'bold'}}>Mới đăng</span>
-                  ) : <span></span>}
+                  <div className="flex-center" style={{gap: '0.5rem'}}>
+                    {job.isNew && <span className="tag" style={{background: 'rgba(249,115,22,0.1)', color: 'var(--primary)', fontWeight: 'bold'}}>Mới đăng</span>}
+                    {job.classType === 'group' ? (
+                      <span className="tag" style={{background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', fontWeight: 'bold'}}>Lớp Nhóm</span>
+                    ) : (
+                      <span className="tag" style={{background: 'rgba(139, 92, 246, 0.1)', color: '#8B5CF6', fontWeight: 'bold'}}>Kèm 1-1</span>
+                    )}
+                  </div>
                   <span className="text-muted flex-center" style={{gap: '0.5rem'}}><Clock size={16}/> {job.postedAt}</span>
                 </div>
                 
@@ -122,8 +156,14 @@ export default function StudentJobBoard() {
                 </p>
                 
                 <div className="flex-between" style={{borderTop: '1px solid var(--border)', paddingTop: '1rem'}}>
-                  <span className="text-muted flex-center" style={{gap: '0.5rem'}}><Users size={18}/> {job.interested} bạn đã quan tâm</span>
-                  <button className="btn btn-primary" style={{padding: '0.6rem 1.5rem'}}>Đăng ký học</button>
+                  {job.classType === 'group' ? (
+                    <span className="text-muted flex-center" style={{gap: '0.5rem'}}><Users size={18}/> Đã đăng ký: <strong style={{color: 'var(--text-main)'}}>{job.registeredStudents}/{job.maxStudents}</strong></span>
+                  ) : (
+                    <span className="text-muted flex-center" style={{gap: '0.5rem'}}><Users size={18}/> {job.interested || 0} bạn đã quan tâm</span>
+                  )}
+                  <Link href={`/students/jobs/${job.id}`} className="btn btn-primary" style={{padding: '0.6rem 1.5rem', textDecoration: 'none'}}>
+                    Xem chi tiết
+                  </Link>
                 </div>
               </div>
             ))}

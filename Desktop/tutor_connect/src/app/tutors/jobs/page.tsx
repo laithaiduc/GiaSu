@@ -5,10 +5,9 @@ import { Search, Filter, MapPin, Briefcase, Clock, Send, ChevronDown } from 'luc
 import './jobs.css';
 
 import ComboBox from '@/components/common/ComboBox';
+import { SUBJECTS, FORMATS } from '@/lib/constants';
 
-const SUBJECTS = ["Toán học", "Tiếng Anh", "Vật lý", "Hóa học", "Ngữ văn", "Sinh học", "Lịch sử", "Địa lý", "Tin học", "Tiếng Nhật", "Tiếng Hàn", "Tiếng Trung", "Luyện thi IELTS", "Luyện thi TOEIC", "Luyện thi Đại học"];
 const GRADES = ["Mầm non", "Lớp 1", "Lớp 2", "Lớp 3", "Lớp 4", "Lớp 5", "Lớp 6", "Lớp 7", "Lớp 8", "Lớp 9", "Lớp 10", "Lớp 11", "Lớp 12", "Đại học", "Người đi làm"];
-const FORMATS = ["Bất kỳ", "Online", "Offline"];
 
 const MOCK_JOBS = [
   {
@@ -79,6 +78,29 @@ const MOCK_JOBS = [
 ];
 
 export default function JobBoard() {
+  const [jobs, setJobs] = useState<any[]>(MOCK_JOBS);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('studentPosts');
+    if (saved) {
+      const allPosts = JSON.parse(saved);
+      const approvedPosts = allPosts.filter((p: any) => p.status === 'Đang tìm gia sư').map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        isNew: true,
+        subject: p.subject,
+        format: p.format,
+        time: p.time,
+        price: p.price,
+        reqs: p.reqs || "Không có yêu cầu thêm.",
+        authorName: p.authorName || "Học sinh ẩn danh",
+        authorId: 1,
+        postedAt: "Mới đây"
+      }));
+      setJobs([...approvedPosts, ...MOCK_JOBS]);
+    }
+  }, []);
+
   return (
     <div className="container job-board-container">
       <div className="page-header" style={{textAlign: 'center', marginBottom: '3rem'}}>
@@ -104,7 +126,7 @@ export default function JobBoard() {
         {/* Jobs List */}
         <main className="results-container">
           <div className="flex-between" style={{marginBottom: '1.5rem'}}>
-            <p>Đang hiển thị <strong>{MOCK_JOBS.length}</strong> lớp học phù hợp</p>
+            <p>Đang hiển thị <strong>{jobs.length}</strong> lớp học phù hợp</p>
             <select className="input-field" style={{width: 'auto'}}>
               <option>Mới đăng nhất</option>
               <option>Học phí cao nhất</option>
@@ -112,7 +134,7 @@ export default function JobBoard() {
           </div>
 
           <div className="jobs-list">
-            {MOCK_JOBS.map((job) => (
+            {jobs.map((job) => (
               <div key={job.id} className="job-card glass">
                 <div className="flex-between">
                   <h2 style={{color: '#D94625', fontSize: '1.4rem'}}>{job.title}</h2>
