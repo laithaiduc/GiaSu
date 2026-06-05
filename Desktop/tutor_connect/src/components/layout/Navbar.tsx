@@ -97,6 +97,43 @@ export default function Navbar() {
           {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
+
+      {isMobileMenuOpen && (
+        <div className="mobile-menu mobile-only">
+          {role === 'student' && (
+            <>
+              <Link href="/students" className="mobile-link" onClick={() => setIsMobileMenuOpen(false)}>Tìm Gia Sư</Link>
+              <Link href="/students/jobs" className="mobile-link" onClick={() => setIsMobileMenuOpen(false)}>Bảng Tin Lớp Học</Link>
+              <Link href="/students/dashboard" className="mobile-link" onClick={() => setIsMobileMenuOpen(false)}>Hồ sơ Học sinh</Link>
+              <Link href="/students/posts" className="mobile-link" onClick={() => setIsMobileMenuOpen(false)}>Quản lý Tìm Gia sư</Link>
+            </>
+          )}
+          
+          {role === 'tutor' && (
+            <>
+              <Link href="/tutors/jobs" className="mobile-link" onClick={() => setIsMobileMenuOpen(false)}>Nhận Lớp Mới</Link>
+              <Link href="/tutors/dashboard" className="mobile-link" onClick={() => setIsMobileMenuOpen(false)}>Hồ sơ Gia sư</Link>
+              <Link href="/tutors/posts" className="mobile-link" onClick={() => setIsMobileMenuOpen(false)}>Quản lý Tuyển sinh</Link>
+            </>
+          )}
+
+          {role === 'admin' && (
+            <Link href="/admin" className="mobile-link" onClick={() => setIsMobileMenuOpen(false)}>Admin Portal</Link>
+          )}
+
+          {!role && (
+            <>
+              <Link href="/students" className="mobile-link" onClick={() => setIsMobileMenuOpen(false)}>Xem Danh Sách Gia Sư</Link>
+              <Link href="/login" className="mobile-link" style={{color: '#D94625', fontWeight: 700}} onClick={() => setIsMobileMenuOpen(false)}>Đăng Nhập</Link>
+              <Link href="/register" className="btn btn-primary" style={{width: '100%', marginTop: '0.5rem', textAlign: 'center'}} onClick={() => setIsMobileMenuOpen(false)}>Đăng Ký</Link>
+            </>
+          )}
+
+          {role && (
+            <button onClick={handleLogout} className="mobile-link" style={{color: '#DC2626', background: 'none', border: 'none', textAlign: 'left', width: '100%', fontWeight: 700}}>Đăng xuất</button>
+          )}
+        </div>
+      )}
     </nav>
   );
 }
